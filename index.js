@@ -1,32 +1,50 @@
+const { Telegraf, Markup, Scenes, session,WizardScene } = require('telegraf');
 require('dotenv').config()
-const express = require('express')
-const bodyParser = require('body-parser')
-const axios = require('axios')
 
-const {TOKEN, SERVER_URL} = process.env
-const TELEGRAM_API = 'https://api.telegram.org/bot'+TOKEN
-const URI = '/webhook/telegram/'+TOKEN
-
-const WEBHOOK_URL=  SERVER_URL+URI
-
-
-
-const app = express()
-
-app.use(bodyParser.json())
-const init = async ()=>{
-    console.log(TELEGRAM_API+'/setWebhook?url='+WEBHOOK_URL)
-    const res = await axios.get(TELEGRAM_API+'/setWebhook?url='+WEBHOOK_URL)
-    console.log(res.data)
+console.log("START TELEGRAF API")
+console.log("Init bot ... : ", process.env.BOT_TOKEN)
+const bot = new Telegraf(process.env.BOT_TOKEN)
+console.log("Init bot ... SUCCESS")
+bot.start((ctx) => {
+    ctx.reply('Bienvenue '+ ctx.message.from.first_name+' '+ctx.message.from.last_name +' dans le system Find me')
+    ctx.reply("Pour continuer merci de vous authentifier en envoyant vos coordonées", {
+        reply_markup: {
+            keyboard: [
+                [
+                    {
+                        text: "📲 Envoyer Mon contact",
+                        request_contact: true,
+                        request_location: true,
+                    },
+                ],
+            ],
+            one_time_keyboard: true,
+        },
+    })
+    console.log('# # # ')
 }
+)
 
-app.post(URI, async (req, res)=>{
-    console.log(req.body)
+bot.help((ctx) => ctx.reply('Send me a sticker'))
 
-    return req.send()
+bot.command('quit', (ctx) => {
+    ctx.reply('Bye ..')
 })
 
-app.listen(process.env.PORT || 5000, async ()=>{
-    console.log('APP STARTED ON : ',process.env.PORT ||5000 )
-    await init()
-})
+bot.on('sticker', (ctx) => ctx.reply('👍'))
+bot.hears('hi', (ctx) => ctx.reply('Hey there'))
+bot.launch()
+
+// Enable graceful stop
+/*
+process.once('SIGINT', () => bot.stop('SIGINT'))
+process.once('SIGTERM', () => bot.stop('SIGTERM'))
+
+bot.command('oldschool', (ctx) => ctx.reply('Hello'))
+bot.command('hipster', Telegraf.reply('λ'))
+bot.launch()
+
+// Enable graceful stop
+process.once('SIGINT', () => bot.stop('SIGINT'))
+process.once('SIGTERM', () => bot.stop('SIGTERM'))
+*/
